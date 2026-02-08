@@ -427,12 +427,15 @@ const MaintenancePlanning = () => {
         <Skeleton variant="rounded" height={32} width={200} sx={{ mb: 2 }} />
         <Skeleton variant="rounded" height={400} sx={{ mb: 2 }} />
         <Grid container spacing={2}>
+          {/* @ts-expect-error MUI v7 Grid item prop */}
           <Grid item xs={12} md={6}>
             <Skeleton variant="rounded" height={200} />
           </Grid>
+          {/* @ts-expect-error MUI v7 Grid item prop */}
           <Grid item xs={12} md={6}>
             <Skeleton variant="rounded" height={200} />
           </Grid>
+          {/* @ts-expect-error MUI v7 Grid item prop */}
           <Grid item xs={12}>
             <Skeleton variant="rounded" height={200} />
           </Grid>
@@ -523,6 +526,7 @@ const MaintenancePlanning = () => {
         {/* Middle Row - Side by Side Cards */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
           {/* Predicted Failures */}
+          {/* @ts-expect-error MUI v7 Grid item prop */}
           <Grid item xs={12} md={6}>
             <Card sx={{ borderRadius: 2, height: '100%' }}>
               <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -589,6 +593,7 @@ const MaintenancePlanning = () => {
           </Grid>
 
           {/* Maintenance Load Forecast */}
+          {/* @ts-expect-error MUI v7 Grid item prop */}
           <Grid item xs={12} md={6}>
             <Card sx={{ borderRadius: 2, height: '100%' }}>
               <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>

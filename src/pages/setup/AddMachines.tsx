@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -23,12 +23,16 @@ import {
   TablePagination,
   Card,
   CardContent,
+  Snackbar,
+  Alert,
+  Autocomplete,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
   PrecisionManufacturing as MachineIcon,
+  UploadFile as UploadFileIcon,
 } from '@mui/icons-material';
 import { machineTypes } from '../../data/mockData';
 import { api } from '../../services/api';
@@ -59,9 +63,15 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const rowsPerPage = 10;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const handleShowForm = (index?: number | null) => {
-    if (index !== null) {
+    if (index != null) {
       setFormData(machineList[index]);
       setEditIndex(index);
     } else {
@@ -117,6 +127,99 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
     }
   };
 
+  const handleCsvImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split(/\r?\n/).filter((line) => line.trim());
+
+      if (lines.length === 0) {
+        setSnackbar({ open: true, message: 'CSV file is empty.', severity: 'error' });
+        return;
+      }
+
+      // Check if first line is a header row
+      const firstLine = lines[0].toLowerCase();
+      const startIndex = firstLine.includes('name') && firstLine.includes('type') ? 1 : 0;
+      const dataLines = lines.slice(startIndex);
+
+      if (dataLines.length === 0) {
+        setSnackbar({ open: true, message: 'CSV file has no data rows.', severity: 'error' });
+        return;
+      }
+
+      const errors: string[] = [];
+      const validMachines: typeof machineList = [];
+      const validCriticalities = ['high', 'medium', 'low'];
+
+      dataLines.forEach((line, i) => {
+        const rowNum = i + startIndex + 1;
+        const cols = line.split(',').map((col) => col.trim());
+
+        if (cols.length < 2) {
+          errors.push(`Row ${rowNum}: needs at least name and type.`);
+          return;
+        }
+
+        const name = cols[0];
+        const type = cols[1];
+
+        if (!name) {
+          errors.push(`Row ${rowNum}: machine name is required.`);
+          return;
+        }
+        if (!type) {
+          errors.push(`Row ${rowNum}: machine type is required.`);
+          return;
+        }
+        if (!machineTypes.includes(type)) {
+          errors.push(`Row ${rowNum}: invalid type "${type}". Valid types: ${machineTypes.join(', ')}.`);
+          return;
+        }
+
+        const criticality = cols[5]?.toLowerCase() || 'medium';
+        if (!validCriticalities.includes(criticality)) {
+          errors.push(`Row ${rowNum}: invalid criticality "${cols[5]}". Use high, medium, or low.`);
+          return;
+        }
+
+        validMachines.push({
+          name,
+          type,
+          location: cols[2] || '',
+          model: cols[3] || '',
+          serial_number: cols[4] || '',
+          criticality,
+        });
+      });
+
+      if (errors.length > 0) {
+        setSnackbar({
+          open: true,
+          message: `${errors.length} error(s): ${errors.slice(0, 3).join(' ')}${errors.length > 3 ? ` ...and ${errors.length - 3} more.` : ''}`,
+          severity: 'error',
+        });
+        return;
+      }
+
+      const updated = [...machineList, ...validMachines];
+      setMachineList(updated);
+      setViewState('table');
+      setSnackbar({
+        open: true,
+        message: `Successfully imported ${validMachines.length} machine${validMachines.length !== 1 ? 's' : ''}.`,
+        severity: 'success',
+      });
+    };
+
+    reader.readAsText(file);
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
+  };
+
   const handleNext = () => {
     onUpdate(machineList);
     onNext();
@@ -135,10 +238,38 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
     }
   };
 
+  // Hidden file input for CSV import
+  const csvInput = (
+    <>
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept=".csv"
+        style={{ display: 'none' }}
+        onChange={handleCsvImport}
+      />
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </>
+  );
+
   // Initial State - Card with Add button
   if (viewState === 'initial') {
     return (
       <Paper sx={{ p: 4, borderRadius: 2 }}>
+        {csvInput}
         <Typography variant="h5" fontWeight={600} gutterBottom>
           Add Machines
         </Typography>
@@ -178,13 +309,22 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Enter your machine details one by one
             </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleShowForm()}
-            >
-              Add
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => handleShowForm()}
+              >
+                Add
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<UploadFileIcon />}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Import CSV
+              </Button>
+            </Box>
           </CardContent>
         </Card>
 
@@ -204,152 +344,151 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
   if (viewState === 'form') {
     return (
       <Paper sx={{ p: 4, borderRadius: 2 }}>
+        {csvInput}
         <Typography variant="h5" fontWeight={600} gutterBottom>
           Machines Information
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           {editIndex !== null ? 'Edit machine details' : 'Enter machine details'}
         </Typography>
 
-        <Box sx={{ mt: 3 }}>
-          <Grid container spacing={3} sx={{ maxWidth: 800 }}>
-            {/* Row 1 */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Machine Name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                select
-                label="Machine Type"
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                required
-              >
-                {machineTypes.map((type) => (
-                  <MenuItem key={type} value={type}>
-                    {type}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            {/* Row 2 */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Location / Production Line"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="e.g., Line A, Building 1"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Serial Number"
-                name="serial_number"
-                value={formData.serial_number}
-                onChange={handleChange}
-              />
-            </Grid>
-
-            {/* Row 3 - Criticality */}
-            <Grid item xs={12}>
-              <FormControl>
-                <FormLabel sx={{ mb: 1 }}>Criticality</FormLabel>
-                <RadioGroup
-                  row
-                  name="criticality"
-                  value={formData.criticality}
-                  onChange={handleChange}
-                >
-                  <FormControlLabel
-                    value="high"
-                    control={
-                      <Radio
-                        sx={{
-                          color: '#f44336',
-                          '&.Mui-checked': { color: '#f44336' },
-                        }}
-                      />
-                    }
-                    label="High"
-                  />
-                  <FormControlLabel
-                    value="medium"
-                    control={
-                      <Radio
-                        sx={{
-                          color: '#ff9800',
-                          '&.Mui-checked': { color: '#ff9800' },
-                        }}
-                      />
-                    }
-                    label="Medium"
-                  />
-                  <FormControlLabel
-                    value="low"
-                    control={
-                      <Radio
-                        sx={{
-                          color: '#4caf50',
-                          '&.Mui-checked': { color: '#4caf50' },
-                        }}
-                      />
-                    }
-                    label="Low"
-                  />
-                </RadioGroup>
-              </FormControl>
-            </Grid>
+        <Grid container spacing={3}>
+          {/* Row 1 - Machine Name & Machine Type */}
+          {/* @ts-expect-error MUI v7 Grid item prop */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Machine Name *"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+            />
+          </Grid>
+          {/* @ts-expect-error MUI v7 Grid item prop */}
+          <Grid item xs={12} md={6}>
+            <Autocomplete
+              options={machineTypes}
+              value={formData.type || null}
+              onChange={(_, newValue) =>
+                setFormData((prev) => ({ ...prev, type: newValue || '' }))
+              }
+              renderInput={(params) => (
+                <TextField {...params} fullWidth label="Machine Type *" />
+              )}
+            />
           </Grid>
 
-          {/* Action Buttons - Centered */}
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2 }}>
-            <Button
-              variant="outlined"
-              onClick={handleCancel}
-              sx={{ minWidth: 150 }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => handleSaveMachine(true)}
-              disabled={!formData.name || !formData.type || loading}
-              sx={{ minWidth: 200 }}
-            >
-              Save & Add Another
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => handleSaveMachine(false)}
-              disabled={!formData.name || !formData.type || loading}
-              sx={{ minWidth: 150 }}
-            >
-              Save Machine
-            </Button>
-          </Box>
+          {/* Row 2 - Location & Serial Number */}
+          {/* @ts-expect-error MUI v7 Grid item prop */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Location / Production Line"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="e.g., Line A, Building 1"
+            />
+          </Grid>
+          {/* @ts-expect-error MUI v7 Grid item prop */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Serial Number"
+              name="serial_number"
+              value={formData.serial_number}
+              onChange={handleChange}
+            />
+          </Grid>
 
-          {/* Navigation Buttons */}
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
-            <Button variant="outlined" onClick={onBack}>
-              Back
-            </Button>
-            <Button variant="contained" onClick={handleNext}>
-              Next
-            </Button>
-          </Box>
+          {/* Row 3 - Criticality */}
+          {/* @ts-expect-error MUI v7 Grid item prop */}
+          <Grid item xs={12}>
+            <FormControl>
+              <FormLabel sx={{ mb: 1 }}>Criticality</FormLabel>
+              <RadioGroup
+                row
+                name="criticality"
+                value={formData.criticality}
+                onChange={handleChange}
+                sx={{ gap: 2 }}
+              >
+                <FormControlLabel
+                  value="high"
+                  control={
+                    <Radio
+                      sx={{
+                        color: '#f44336',
+                        '&.Mui-checked': { color: '#f44336' },
+                      }}
+                    />
+                  }
+                  label="High"
+                />
+                <FormControlLabel
+                  value="medium"
+                  control={
+                    <Radio
+                      sx={{
+                        color: '#ff9800',
+                        '&.Mui-checked': { color: '#ff9800' },
+                      }}
+                    />
+                  }
+                  label="Medium"
+                />
+                <FormControlLabel
+                  value="low"
+                  control={
+                    <Radio
+                      sx={{
+                        color: '#4caf50',
+                        '&.Mui-checked': { color: '#4caf50' },
+                      }}
+                    />
+                  }
+                  label="Low"
+                />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
+
+          {/* Row 4 - Action Buttons */}
+          {/* @ts-expect-error MUI v7 Grid item prop */}
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              <Button
+                variant="outlined"
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => handleSaveMachine(true)}
+                disabled={!formData.name || !formData.type || loading}
+              >
+                Save & Add Another
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => handleSaveMachine(false)}
+                disabled={!formData.name || !formData.type || loading}
+              >
+                Save Machine
+              </Button>
+            </Box>
+          </Grid>
+        </Grid>
+
+        {/* Navigation Buttons */}
+        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+          <Button variant="outlined" onClick={onBack}>
+            Back
+          </Button>
+          <Button variant="contained" onClick={handleNext}>
+            Next
+          </Button>
         </Box>
       </Paper>
     );
@@ -358,6 +497,7 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
   // Table State
   return (
     <Paper sx={{ p: 4, borderRadius: 2 }}>
+      {csvInput}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h5" fontWeight={600} gutterBottom>
@@ -367,13 +507,22 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
             {machineList.length} machine{machineList.length !== 1 ? 's' : ''} added
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleShowForm()}
-        >
-          Add Machine
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<UploadFileIcon />}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Import CSV
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleShowForm()}
+          >
+            Add Machine
+          </Button>
+        </Box>
       </Box>
 
       <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>

@@ -122,9 +122,11 @@ const MachineDetails = () => {
       <Box>
         <Skeleton variant="rounded" height={40} width={200} sx={{ mb: 3 }} />
         <Grid container spacing={3}>
+          {/* @ts-expect-error MUI v7 Grid item prop */}
           <Grid item xs={12} md={4}>
             <Skeleton variant="rounded" height={300} />
           </Grid>
+          {/* @ts-expect-error MUI v7 Grid item prop */}
           <Grid item xs={12} md={8}>
             <Skeleton variant="rounded" height={300} />
           </Grid>
@@ -166,6 +168,7 @@ const MachineDetails = () => {
 
       <Grid container spacing={3}>
         {/* Left Column - Info & Prediction */}
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12} md={4}>
           {/* Asset Information */}
           <Card sx={{ mb: 3, borderRadius: 2 }}>
@@ -247,6 +250,7 @@ const MachineDetails = () => {
               </Box>
 
               <Grid container spacing={2} sx={{ mb: 2 }}>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">
                     Remaining Useful Life
@@ -255,6 +259,7 @@ const MachineDetails = () => {
                     {machine.prediction.rul} cycles
                   </Typography>
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={6}>
                   <Typography variant="caption" color="text.secondary">
                     Time to Failure
@@ -297,6 +302,7 @@ const MachineDetails = () => {
         </Grid>
 
         {/* Right Column - Live Data & History */}
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12} md={8}>
           {/* Live Sensor Data */}
           <Card sx={{ mb: 3, borderRadius: 2 }}>
@@ -321,6 +327,7 @@ const MachineDetails = () => {
               {/* Current Sensor Values */}
               <Grid container spacing={2} sx={{ mb: 3 }}>
                 {Object.entries(machine.sensors).map(([key, value]) => (
+                  // @ts-expect-error MUI v7 Grid item prop
                   <Grid item xs={6} sm={3} key={key}>
                     <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>

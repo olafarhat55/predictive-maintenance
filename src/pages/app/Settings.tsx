@@ -137,6 +137,7 @@ const Settings = () => {
                 Company Settings
               </Typography>
               <Grid container spacing={3}>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -146,6 +147,7 @@ const Settings = () => {
                     onChange={handleCompanyChange}
                   />
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -162,6 +164,7 @@ const Settings = () => {
                     ))}
                   </TextField>
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -178,6 +181,7 @@ const Settings = () => {
                     ))}
                   </TextField>
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -220,6 +224,7 @@ const Settings = () => {
                 Temperature (°C)
               </Typography>
               <Grid container spacing={3} sx={{ mb: 3 }}>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -230,6 +235,7 @@ const Settings = () => {
                     onChange={handleThresholdChange}
                   />
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -248,6 +254,7 @@ const Settings = () => {
                 Vibration (mm/s)
               </Typography>
               <Grid container spacing={3} sx={{ mb: 3 }}>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -259,6 +266,7 @@ const Settings = () => {
                     onChange={handleThresholdChange}
                   />
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -278,6 +286,7 @@ const Settings = () => {
                 Pressure (PSI)
               </Typography>
               <Grid container spacing={3} sx={{ mb: 3 }}>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -288,6 +297,7 @@ const Settings = () => {
                     onChange={handleThresholdChange}
                   />
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth

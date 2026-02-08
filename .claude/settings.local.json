@@ -1,7 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(tree:*)",
+      "Bash(git checkout:*)",
+      "Bash(npm install:*)",
+      "Bash(npx eslint:*)",
+      "Bash(timeout 15 npx vite:*)",
+      "Bash(git mv:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout 12 npx vite:*)",
+      "Bash(npx vite build:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(ls:*)",
+      "Bash(git rm:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(powershell -Command:*)"
     ]
   }
 }
