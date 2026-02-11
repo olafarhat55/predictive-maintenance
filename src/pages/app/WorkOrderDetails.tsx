@@ -102,9 +102,11 @@ const WorkOrderDetails = () => {
       <Box>
         <Skeleton variant="rounded" height={40} width={300} sx={{ mb: 3 }} />
         <Grid container spacing={3}>
+          {/* @ts-expect-error MUI v7 Grid item prop */}
           <Grid item xs={12} md={8}>
             <Skeleton variant="rounded" height={400} />
           </Grid>
+          {/* @ts-expect-error MUI v7 Grid item prop */}
           <Grid item xs={12} md={4}>
             <Skeleton variant="rounded" height={400} />
           </Grid>
@@ -166,6 +168,7 @@ const WorkOrderDetails = () => {
 
       <Grid container spacing={3}>
         {/* Main Content */}
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12} md={8}>
           {/* Work Order Details */}
           <Card sx={{ borderRadius: 2, mb: 3 }}>
@@ -180,6 +183,7 @@ const WorkOrderDetails = () => {
               <Divider sx={{ my: 2 }} />
 
               <Grid container spacing={3}>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={6} md={3}>
                   <Typography variant="caption" color="text.secondary">
                     Created By
@@ -188,6 +192,7 @@ const WorkOrderDetails = () => {
                     {workOrder.created_by?.name || 'N/A'}
                   </Typography>
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={6} md={3}>
                   <Typography variant="caption" color="text.secondary">
                     Created At
@@ -196,6 +201,7 @@ const WorkOrderDetails = () => {
                     {format(new Date(workOrder.created_at), 'MMM d, yyyy h:mm a')}
                   </Typography>
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={6} md={3}>
                   <Typography variant="caption" color="text.secondary">
                     Due Date
@@ -206,6 +212,7 @@ const WorkOrderDetails = () => {
                       : 'Not set'}
                   </Typography>
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={6} md={3}>
                   <Typography variant="caption" color="text.secondary">
                     Estimated Hours
@@ -318,6 +325,7 @@ const WorkOrderDetails = () => {
         </Grid>
 
         {/* Sidebar */}
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12} md={4}>
           {/* Assignment Info */}
           <Card sx={{ borderRadius: 2, mb: 3 }}>

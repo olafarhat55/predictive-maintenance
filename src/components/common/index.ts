@@ -5,3 +5,5 @@ export { default as StatusBadge } from './StatusBadge';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as TableSkeleton } from './TableSkeleton';
 export { default as CardGridSkeleton } from './CardGridSkeleton';
+export { default as MiniMaxiLogo } from './MiniMaxiLogo';
+export { default as ThemeToggle } from './ThemeToggle';

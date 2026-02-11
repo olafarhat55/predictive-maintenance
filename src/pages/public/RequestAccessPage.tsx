@@ -246,13 +246,24 @@ const RequestAccessPage = () => {
       }}
     >
       <Container maxWidth="sm">
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Typography
-            variant="h4"
-            fontWeight={700}
-            sx={{ color: 'white', cursor: 'pointer' }}
-            onClick={() => navigate('/')}
-          >
+        <Box
+          sx={{
+            textAlign: 'center',
+            mb: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1.5,
+            cursor: 'pointer',
+          }}
+          onClick={() => navigate('/')}
+        >
+          <img
+            src="/images/logo.png"
+            alt="minimaxi logo"
+            style={{ height: 48, width: 'auto', objectFit: 'contain' }}
+          />
+          <Typography variant="h4" fontWeight={700} sx={{ color: 'white' }}>
             minimaxi
           </Typography>
         </Box>

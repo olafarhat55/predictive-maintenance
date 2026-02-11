@@ -65,7 +65,7 @@ const MainLayout = () => {
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: isDark ? '#121212' : '#f5f5f5',
+          bgcolor: 'background.default',
           minHeight: '100vh',
           minWidth: 0,
           overflow: 'hidden',

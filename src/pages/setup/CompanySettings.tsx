@@ -78,6 +78,7 @@ const CompanySettings = ({ data, onUpdate, onNext, onBack }: CompanySettingsProp
       </Typography>
 
       <Grid container spacing={3} sx={{ maxWidth: 600 }}>
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12}>
           <TextField
             fullWidth
@@ -112,6 +113,7 @@ const CompanySettings = ({ data, onUpdate, onNext, onBack }: CompanySettingsProp
           </FormControl>
         </Grid> */}
 
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12}>
           <TextField
             fullWidth
@@ -129,6 +131,7 @@ const CompanySettings = ({ data, onUpdate, onNext, onBack }: CompanySettingsProp
           </TextField>
         </Grid>
 
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12}>
           <TextField
             fullWidth

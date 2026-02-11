@@ -40,35 +40,55 @@ const lightPalette = {
   divider: '#e0e0e0',
 };
 
-// Dark theme palette
+// Dark theme palette — premium dark UI
 const darkPalette = {
   mode: 'dark' as const,
   primary: {
-    main: '#5a9fd4',
-    light: '#8bc4ea',
-    dark: '#2E75B6',
+    main: '#3B82F6',
+    light: '#60A5FA',
+    dark: '#2563EB',
   },
   secondary: {
-    main: '#8fa4bd',
+    main: '#8B5CF6',
+    light: '#A855F7',
+    dark: '#7C3AED',
   },
   success: {
-    main: '#66bb6a',
+    main: '#10B981',
+    light: '#22C55E',
+    dark: '#059669',
   },
   warning: {
-    main: '#ffb74d',
+    main: '#8B5CF6',
+    light: '#A855F7',
+    dark: '#7C3AED',
   },
   error: {
-    main: '#ef5350',
+    main: '#EF4444',
+    light: '#F87171',
+    dark: '#DC2626',
+  },
+  info: {
+    main: '#06B6D4',
+    light: '#22D3EE',
+    dark: '#0891B2',
   },
   background: {
-    default: '#121212',
-    paper: '#1e1e1e',
+    default: '#1E2A3A',
+    paper: '#283444',
   },
   text: {
-    primary: '#e0e0e0',
-    secondary: '#a0a0a0',
+    primary: '#F1F5F9',
+    secondary: '#94A3B8',
+    disabled: '#64748B',
   },
-  divider: '#333333',
+  divider: 'rgba(255, 255, 255, 0.1)',
+  action: {
+    hover: 'rgba(255, 255, 255, 0.05)',
+    selected: 'rgba(59, 130, 246, 0.15)',
+    disabled: 'rgba(255, 255, 255, 0.2)',
+    disabledBackground: 'rgba(255, 255, 255, 0.05)',
+  },
 };
 
 const createAppTheme = (mode: string): Theme => {
@@ -95,6 +115,7 @@ const createAppTheme = (mode: string): Theme => {
       MuiCssBaseline: {
         styleOverrides: {
           body: {
+            backgroundColor: palette.background.default,
             transition: 'background-color 0.3s ease, color 0.3s ease',
           },
         },
@@ -111,16 +132,24 @@ const createAppTheme = (mode: string): Theme => {
         styleOverrides: {
           root: {
             boxShadow: mode === 'dark'
-              ? '0 2px 8px rgba(0,0,0,0.3)'
+              ? '0 4px 20px rgba(0, 0, 0, 0.3)'
               : '0 2px 8px rgba(0,0,0,0.08)',
-            border: mode === 'dark' ? '1px solid #333' : 'none',
+            border: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+            backgroundImage: 'none',
             transition: 'background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
+            ...(mode === 'dark' && {
+              '&:hover': {
+                backgroundColor: '#303D4F',
+                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
+              },
+            }),
           },
         },
       },
       MuiPaper: {
         styleOverrides: {
           root: {
+            backgroundImage: 'none',
             transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
           },
         },
@@ -128,6 +157,11 @@ const createAppTheme = (mode: string): Theme => {
       MuiAppBar: {
         styleOverrides: {
           root: {
+            backgroundImage: 'none',
+            ...(mode === 'dark' && {
+              backgroundColor: '#1E2A3A',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+            }),
             transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
           },
         },
@@ -135,6 +169,11 @@ const createAppTheme = (mode: string): Theme => {
       MuiDrawer: {
         styleOverrides: {
           paper: {
+            backgroundImage: 'none',
+            ...(mode === 'dark' && {
+              backgroundColor: '#1E2A3A',
+              borderRight: '1px solid rgba(255, 255, 255, 0.05)',
+            }),
             transition: 'background-color 0.3s ease, border-color 0.3s ease, width 0.3s ease',
           },
         },
@@ -145,9 +184,24 @@ const createAppTheme = (mode: string): Theme => {
           size: 'small',
         },
       },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: mode === 'dark' ? {
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+            },
+          } : {},
+        },
+      },
       MuiTableCell: {
         styleOverrides: {
           root: {
+            ...(mode === 'dark' && {
+              borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+            }),
             transition: 'background-color 0.3s ease, color 0.3s ease',
           },
         },
@@ -164,6 +218,21 @@ const createAppTheme = (mode: string): Theme => {
           root: {
             transition: 'background-color 0.3s ease, color 0.3s ease',
           },
+        },
+      },
+      MuiLinearProgress: {
+        styleOverrides: {
+          root: mode === 'dark' ? {
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            borderRadius: 4,
+          } : {},
+        },
+      },
+      MuiDivider: {
+        styleOverrides: {
+          root: mode === 'dark' ? {
+            borderColor: 'rgba(255, 255, 255, 0.05)',
+          } : {},
         },
       },
     },

@@ -56,7 +56,7 @@ const TrendLineChart = ({
       return (
         <Box
           sx={{
-            bgcolor: isDark ? '#2d2d2d' : 'white',
+            bgcolor: isDark ? '#283444' : 'white',
             p: 1.5,
             borderRadius: 1,
             boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.15)',

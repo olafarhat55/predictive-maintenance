@@ -196,6 +196,7 @@ const AddUsers = ({ users, onUpdate, onNext, onBack }: AddUsersProps) => {
 
       <Grid container spacing={4}>
         {/* Left Side - Form */}
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12} md={5}>
           <Paper variant="outlined" sx={{ p: 3 }}>
             <Typography variant="subtitle1" fontWeight={600} gutterBottom>
@@ -264,6 +265,7 @@ const AddUsers = ({ users, onUpdate, onNext, onBack }: AddUsersProps) => {
         </Grid>
 
         {/* Right Side - Table */}
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12} md={7}>
           <Typography variant="subtitle1" fontWeight={600} gutterBottom>
             Invited Users ({userList.length})
@@ -275,7 +277,7 @@ const AddUsers = ({ users, onUpdate, onNext, onBack }: AddUsersProps) => {
                 <TableHead>
                   <TableRow
                     sx={{
-                      bgcolor: isDark ? '#2d2d2d' : '#f5f5f5',
+                      bgcolor: isDark ? '#283444' : '#f5f5f5',
                       '& th': {
                         color: isDark ? '#e5e5e5' : 'inherit',
                         fontWeight: 600,

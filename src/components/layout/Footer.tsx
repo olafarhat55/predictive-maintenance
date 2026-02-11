@@ -12,8 +12,8 @@ const Footer = () => {
         py: 2,
         px: 3,
         mt: 'auto',
-        backgroundColor: isDark ? '#1a1a1a' : '#fafafa',
-        borderTop: `1px solid ${isDark ? '#333' : '#e0e0e0'}`,
+        backgroundColor: isDark ? '#1E2A3A' : '#fafafa',
+        borderTop: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.05)' : '#e0e0e0'}`,
         transition: 'background-color 0.3s ease, border-color 0.3s ease',
       }}
     >

@@ -42,21 +42,16 @@ const SetupSidebar = ({ activeStep = 0 }: SetupSidebarProps) => {
             gap: 1,
           }}
         >
-          <Box
-            component="span"
-            sx={{
-              width: 28,
+          <img
+            src="/images/logo.png"
+            alt="minimaxi logo"
+            style={{
               height: 28,
-              borderRadius: '6px',
-              bgcolor: '#2E75B6',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
+              width: 'auto',
+              display: 'block',
+              objectFit: 'contain',
             }}
-          >
-            ⚙
-          </Box>
+          />
           minimaxi
         </Typography>
       </Box>

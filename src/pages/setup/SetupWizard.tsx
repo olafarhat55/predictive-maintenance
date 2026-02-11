@@ -48,7 +48,7 @@ const SetupWizard = () => {
   const isWelcomePage = activeStep === -1;
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f5f5f5' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Sidebar - Only show on non-welcome pages */}
       {!isWelcomePage && <SetupSidebar activeStep={activeStep} />}
 

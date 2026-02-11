@@ -201,7 +201,7 @@ const MachinesList = () => {
               <TableHead>
                 <TableRow
                   sx={{
-                    bgcolor: isDark ? '#2d2d2d' : '#f5f5f5',
+                    bgcolor: isDark ? '#283444' : '#f5f5f5',
                     '& th': {
                       color: isDark ? '#e5e5e5' : 'inherit',
                       fontWeight: 600,

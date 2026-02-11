@@ -71,11 +71,14 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
   const isCollapsed = !isMobile && !open;
 
   // Theme-aware colors
-  const sidebarBgColor = isDark ? '#1a1a1a' : '#fafafa';
-  const borderColor = isDark ? '#333' : '#e0e0e0';
-  const hoverBgColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)';
-  const textColor = isDark ? '#e0e0e0' : 'text.primary';
-  const iconColor = isDark ? '#a0a0a0' : 'text.secondary';
+  const sidebarBgColor = isDark ? '#1E2A3A' : '#fafafa';
+  const borderColor = isDark ? 'rgba(255, 255, 255, 0.05)' : '#e0e0e0';
+  const hoverBgColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+  const activeBgColor = isDark ? '#283444' : 'primary.main';
+  const activeTextColor = isDark ? '#F1F5F9' : 'white';
+  const activeIconColor = isDark ? '#60A5FA' : 'white';
+  const textColor = isDark ? '#F1F5F9' : 'text.primary';
+  const iconColor = isDark ? '#94A3B8' : 'text.secondary';
 
   const drawerContent = (
     <Box sx={{ overflow: 'auto' }}>
@@ -90,20 +93,22 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               onClick={() => handleNavigation(item.path)}
               sx={{
                 borderRadius: 2,
-                bgcolor: active ? 'primary.main' : 'transparent',
-                color: active ? 'white' : textColor,
+                bgcolor: active ? activeBgColor : 'transparent',
+                color: active ? activeTextColor : textColor,
                 minHeight: 48,
                 justifyContent: isCollapsed ? 'center' : 'initial',
                 px: isCollapsed ? 1.5 : 2,
                 transition: 'background-color 0.2s ease, color 0.2s ease',
                 '&:hover': {
-                  bgcolor: active ? 'primary.dark' : hoverBgColor,
+                  bgcolor: active
+                    ? (isDark ? '#303D4F' : 'primary.dark')
+                    : hoverBgColor,
                 },
               }}
             >
               <ListItemIcon
                 sx={{
-                  color: active ? 'white' : iconColor,
+                  color: active ? activeIconColor : iconColor,
                   minWidth: isCollapsed ? 0 : 40,
                   justifyContent: 'center',
                   transition: 'color 0.2s ease',

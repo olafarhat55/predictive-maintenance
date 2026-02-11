@@ -134,12 +134,19 @@ const LandingPage = () => {
       {/* Navigation Bar */}
       <AppBar
         position="fixed"
-        elevation={scrolled ? 2 : 0}
+        elevation={0}
         sx={{
-          bgcolor: scrolled ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(10px)' : 'none',
-          transition: 'all 0.3s ease-in-out',
-          borderBottom: scrolled ? '1px solid rgba(0,0,0,0.08)' : 'none',
+          zIndex: 1000,
+          bgcolor: scrolled ? 'rgba(255, 255, 255, 0.75)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(16px) saturate(180%)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(16px) saturate(180%)' : 'none',
+          transition: 'all 0.3s ease',
+          borderBottom: scrolled
+            ? '1px solid rgba(255, 255, 255, 0.3)'
+            : '1px solid transparent',
+          boxShadow: scrolled
+            ? '0 4px 30px rgba(0, 0, 0, 0.05)'
+            : 'none',
         }}
       >
         <Container maxWidth="lg">
@@ -155,7 +162,16 @@ const LandingPage = () => {
               }}
               onClick={() => scrollToSection('home')}
             >
-              
+              <img
+                src="/images/logo.png"
+                alt="minimaxi logo"
+                style={{
+                  height: 36,
+                  width: 'auto',
+                  display: 'block',
+                  objectFit: 'contain',
+                }}
+              />
               <Typography
                 variant="h6"
                 sx={{
@@ -1070,19 +1086,16 @@ const LandingPage = () => {
             {/* Company Info */}
             <Grid size={{ xs: 12, md: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #2E75B6 0%, #3B82F6 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                <img
+                  src="/images/logo.png"
+                  alt="minimaxi logo"
+                  style={{
+                    height: 36,
+                    width: 'auto',
+                    display: 'block',
+                    objectFit: 'contain',
                   }}
-                >
-                  <AnalyticsIcon sx={{ color: 'white', fontSize: 24 }} />
-                </Box>
+                />
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
                   minimaxi
                 </Typography>

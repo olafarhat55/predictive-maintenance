@@ -17,7 +17,6 @@ import {
   ListItem,
   ListItemButton,
   Chip,
-  Tooltip,
   useTheme,
 } from '@mui/material';
 import {
@@ -28,14 +27,14 @@ import {
   Logout as LogoutIcon,
   Settings as SettingsIcon,
   Circle as CircleIcon,
-  LightMode as LightModeIcon,
-  DarkMode as DarkModeIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useThemeMode } from '../../context/ThemeContext';
 import { format } from 'date-fns';
 import type { Notification } from '../../types';
+import MiniMaxiLogo from '../common/MiniMaxiLogo';
+import ThemeToggle from '../common/ThemeToggle';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -45,7 +44,7 @@ interface HeaderProps {
 
 const Header = ({ onMenuClick, notifications = [], sidebarOpen = false }: HeaderProps) => {
   const { user, logout } = useAuth();
-  const { mode, toggleTheme, isDark } = useThemeMode();
+  const { isDark } = useThemeMode();
   const theme = useTheme();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -103,10 +102,10 @@ const Header = ({ onMenuClick, notifications = [], sidebarOpen = false }: Header
       position="fixed"
       sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        backgroundColor: isDark ? '#1e1e1e' : '#fff',
-        color: isDark ? '#e0e0e0' : '#333',
+        backgroundColor: isDark ? '#1E2A3A' : '#fff',
+        color: isDark ? '#F1F5F9' : '#333',
         boxShadow: isDark ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.1)',
-        borderBottom: isDark ? '1px solid #333' : 'none',
+        borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
         transition: 'background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease',
       }}
     >
@@ -127,69 +126,44 @@ const Header = ({ onMenuClick, notifications = [], sidebarOpen = false }: Header
           {sidebarOpen ? <MenuOpenIcon /> : <MenuIcon />}
         </IconButton>
 
-        {/* Logo and Brand - Compact clickable container */}
-        <Box
-          onClick={() => {
-            const homePath = user?.role === 'technician' ? '/my-work-orders' : '/dashboard';
-            navigate(homePath);
-          }}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            cursor: 'pointer',
-            width: 'fit-content',
-            padding: '8px 12px',
-            '&:hover': {
-              opacity: 0.9,
-            }
-          }}
-        >
-          <img
-            src="/images/logo.png"
-            alt="Minimaxi Logo"
-            style={{
-              height: '36px',
-              width: 'auto',
-              display: 'block'
+        {/* Logo and Brand */}
+        <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+          <MiniMaxiLogo
+            size={34}
+            showText={false}
+            onClick={() => {
+              const homePath = user?.role === 'technician' ? '/my-work-orders' : '/dashboard';
+              navigate(homePath);
             }}
           />
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 600,
-              fontSize: '1.25rem',
-              color: isDark ? '#5a9fd4' : '#2E75B6',
+        </Box>
+        <Box sx={{ display: { xs: 'none', sm: 'block', md: 'none' } }}>
+          <MiniMaxiLogo
+            size={34}
+            showText
+            onClick={() => {
+              const homePath = user?.role === 'technician' ? '/my-work-orders' : '/dashboard';
+              navigate(homePath);
             }}
-          >
-            minimaxi
-          </Typography>
+          />
+        </Box>
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+          <MiniMaxiLogo
+            size={36}
+            showText
+            showTagline
+            onClick={() => {
+              const homePath = user?.role === 'technician' ? '/my-work-orders' : '/dashboard';
+              navigate(homePath);
+            }}
+          />
         </Box>
 
         {/* Spacer */}
         <Box sx={{ flexGrow: 1 }} />
 
         {/* Theme Toggle */}
-        <Tooltip title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-          <IconButton
-            color="inherit"
-            onClick={toggleTheme}
-            sx={{
-              mr: 1,
-              transition: 'transform 0.3s ease, background-color 0.3s ease',
-              '&:hover': {
-                transform: 'rotate(180deg)',
-                backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-              },
-            }}
-          >
-            {isDark ? (
-              <DarkModeIcon sx={{ color: '#5a9fd4' }} />
-            ) : (
-              <LightModeIcon sx={{ color: '#ffb74d' }} />
-            )}
-          </IconButton>
-        </Tooltip>
+        <ThemeToggle />
 
         {/* Notifications */}
         <IconButton

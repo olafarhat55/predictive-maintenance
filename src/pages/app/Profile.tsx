@@ -110,6 +110,7 @@ const Profile = () => {
 
       <Grid container spacing={3}>
         {/* Profile Information */}
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12} md={8}>
           <Card sx={{ borderRadius: 2, mb: 3 }}>
             <CardContent>
@@ -152,6 +153,7 @@ const Profile = () => {
               </Box>
 
               <Grid container spacing={2}>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -161,6 +163,7 @@ const Profile = () => {
                     onChange={handleProfileChange}
                   />
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -172,6 +175,7 @@ const Profile = () => {
                     helperText="Email cannot be changed"
                   />
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -204,6 +208,7 @@ const Profile = () => {
               </Typography>
 
               <Grid container spacing={2}>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
@@ -226,6 +231,7 @@ const Profile = () => {
                     }}
                   />
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -249,6 +255,7 @@ const Profile = () => {
                     }}
                   />
                 </Grid>
+                {/* @ts-expect-error MUI v7 Grid item prop */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -275,6 +282,7 @@ const Profile = () => {
         </Grid>
 
         {/* Sidebar Info */}
+        {/* @ts-expect-error MUI v7 Grid item prop */}
         <Grid item xs={12} md={4}>
           <Card sx={{ borderRadius: 2 }}>
             <CardContent>

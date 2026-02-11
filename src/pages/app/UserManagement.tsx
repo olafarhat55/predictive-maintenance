@@ -177,7 +177,7 @@ const UserManagement = () => {
             <TableHead>
               <TableRow
                 sx={{
-                  bgcolor: isDark ? '#2d2d2d' : '#f5f5f5',
+                  bgcolor: isDark ? '#283444' : '#f5f5f5',
                   '& th': {
                     color: isDark ? '#e5e5e5' : 'inherit',
                     fontWeight: 600,
@@ -247,6 +247,7 @@ const UserManagement = () => {
         </DialogTitle>
         <DialogContent dividers>
           <Grid container spacing={2} sx={{ mt: 0 }}>
+            {/* @ts-expect-error MUI v7 Grid item prop */}
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -259,6 +260,7 @@ const UserManagement = () => {
                 required
               />
             </Grid>
+            {/* @ts-expect-error MUI v7 Grid item prop */}
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -273,6 +275,7 @@ const UserManagement = () => {
                 disabled={!!editUser}
               />
             </Grid>
+            {/* @ts-expect-error MUI v7 Grid item prop */}
             <Grid item xs={12}>
               <TextField
                 fullWidth
