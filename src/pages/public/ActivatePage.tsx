@@ -104,8 +104,8 @@ const ActivatePage = () => {
       // Check if admin (first_login true) or regular user
       if (response.user && response.user.first_login) {
         // Admin - store user data and redirect to setup wizard
-        localStorage.setItem('user', JSON.stringify(response.user));
-        localStorage.setItem('token', response.token);
+        sessionStorage.setItem('user', JSON.stringify(response.user));
+        sessionStorage.setItem('token', response.token);
         updateUser(response.user);
         navigate('/setup');
       } else {

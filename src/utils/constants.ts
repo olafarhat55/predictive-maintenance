@@ -69,23 +69,26 @@ export interface NavItem {
 export const NAV_ITEMS: Record<Role, NavItem[]> = {
   [ROLES.ADMIN]: [
     { label: 'Dashboard', path: '/dashboard', icon: 'Dashboard' },
-    { label: 'Machines', path: '/machines', icon: 'Build' },
+    { label: 'Assets', path: '/machines', icon: 'PrecisionManufacturing' },
     { label: 'Work Orders', path: '/work-orders', icon: 'Assignment' },
-    { label: 'Alerts', path: '/alerts', icon: 'Notifications' },
-    { label: 'Analytics', path: '/analytics', icon: 'Analytics' },
+    { label: 'Maintenance', path: '/maintenance', icon: 'Build' },
+    { label: 'Reports', path: '/reports', icon: 'Assessment' },
+    { label: 'Alerts', path: '/alerts', icon: 'NotificationsActive' },
     { label: 'Users', path: '/users', icon: 'People' },
     { label: 'Settings', path: '/settings', icon: 'Settings' },
   ],
   [ROLES.ENGINEER]: [
     { label: 'Dashboard', path: '/dashboard', icon: 'Dashboard' },
-    { label: 'Machines', path: '/machines', icon: 'Build' },
+    { label: 'Assets', path: '/machines', icon: 'PrecisionManufacturing' },
     { label: 'Work Orders', path: '/work-orders', icon: 'Assignment' },
-    { label: 'Alerts', path: '/alerts', icon: 'Notifications' },
-    { label: 'Analytics', path: '/analytics', icon: 'Analytics' },
+    { label: 'Maintenance', path: '/maintenance', icon: 'Build' },
+    { label: 'Reports', path: '/reports', icon: 'Assessment' },
+    { label: 'Alerts', path: '/alerts', icon: 'NotificationsActive' },
   ],
   [ROLES.TECHNICIAN]: [
+    { label: 'Dashboard', path: '/dashboard', icon: 'Dashboard' },
+    { label: 'Assets', path: '/machines', icon: 'PrecisionManufacturing' },
     { label: 'My Work Orders', path: '/my-work-orders', icon: 'Assignment' },
-    { label: 'Alerts', path: '/alerts', icon: 'Notifications' },
   ],
 };
 

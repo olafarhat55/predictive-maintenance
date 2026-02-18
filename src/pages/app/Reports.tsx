@@ -67,27 +67,61 @@ const Reports = () => {
     fetchReportsData();
   }, []);
 
+  /**
+   * Convert an SVG element to a canvas so html2canvas can render it.
+   * html2canvas has limited SVG support — Recharts SVGs often render
+   * blank unless they are rasterised first.
+   */
+  const svgToCanvas = (svg: SVGSVGElement): Promise<HTMLCanvasElement> => {
+    return new Promise((resolve, reject) => {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = svg.clientWidth * 2;   // 2× for retina clarity
+        canvas.height = svg.clientHeight * 2;
+        canvas.style.width = `${svg.clientWidth}px`;
+        canvas.style.height = `${svg.clientHeight}px`;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Could not get canvas context')); return; }
+        ctx.scale(2, 2);
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+        resolve(canvas);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load SVG as image'));
+      };
+      img.src = url;
+    });
+  };
+
   const handleExportPDF = async () => {
     const element = reportRef.current;
     if (!element) return;
 
     setExporting(true);
     try {
-      // Wait for any pending renders / chart animations
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Wait for any pending chart animations to finish
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       const opt = {
-        margin: [10, 10, 10, 10] as [number, number, number, number],
+        margin: [10, 10, 10, 10],
         filename: `predictive-maintenance-report-${new Date().toISOString().slice(0, 10)}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
+        image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
           backgroundColor: '#ffffff',
           logging: false,
         },
-        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] as const },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { mode: ['css', 'legacy'] },
       };
 
       // Clone so we can force light styles for the PDF without affecting the UI
@@ -105,7 +139,6 @@ const Reports = () => {
         el.style.border = '1px solid #e0e0e0';
       });
       clone.querySelectorAll<HTMLElement>('.MuiTypography-root').forEach(el => {
-        // Preserve colored headings (KPI values) but fix regular text
         if (!el.style.color || el.style.color === 'rgb(241, 245, 249)' || el.style.color === 'rgb(148, 163, 184)') {
           el.style.color = '#333333';
         }
@@ -115,11 +148,32 @@ const Reports = () => {
         el.style.borderBottomColor = '#e0e0e0';
       });
 
-      // Append off-screen, render, then remove
+      // Append off-screen so html2canvas can access computed styles
       clone.style.position = 'absolute';
       clone.style.left = '-9999px';
       clone.style.top = '0';
       document.body.appendChild(clone);
+
+      // Convert Recharts SVGs to canvas elements (html2canvas cannot render them)
+      const svgs = clone.querySelectorAll<SVGSVGElement>('svg.recharts-surface');
+      for (const svg of svgs) {
+        try {
+          // Copy computed dimensions onto the SVG so the serialised version keeps its size
+          const rect = element.querySelector(`svg.recharts-surface`)
+            ? svg
+            : svg;
+          if (!svg.getAttribute('width')) {
+            svg.setAttribute('width', String(svg.clientWidth || 300));
+            svg.setAttribute('height', String(svg.clientHeight || 200));
+          }
+
+          const canvas = await svgToCanvas(svg);
+          svg.parentNode?.replaceChild(canvas, svg);
+        } catch {
+          // If a single chart fails to convert, continue with the rest
+          console.warn('Could not convert SVG chart to canvas, it may appear blank in the PDF');
+        }
+      }
 
       await html2pdf().set(opt).from(clone).save();
 

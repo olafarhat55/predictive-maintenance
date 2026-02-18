@@ -30,7 +30,7 @@ import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useThemeMode } from '../../context/ThemeContext';
 import { StatusBadge, EmptyState } from '../../components/common';
-import { isAdmin } from '../../utils/permissions';
+import { isAdmin, isTechnician } from '../../utils/permissions';
 import { machineTypes } from '../../data/mockData';
 import type { Machine } from '../../types';
 
@@ -274,16 +274,20 @@ const MachinesList = () => {
                       >
                         <ViewIcon fontSize="small" />
                       </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleCreateWorkOrder(machine)}
-                        title="Create Work Order"
-                      >
-                        <WorkOrderIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton size="small" title="View History">
-                        <HistoryIcon fontSize="small" />
-                      </IconButton>
+                      {!isTechnician(user) && (
+                        <>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCreateWorkOrder(machine)}
+                            title="Create Work Order"
+                          >
+                            <WorkOrderIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" title="View History">
+                            <HistoryIcon fontSize="small" />
+                          </IconButton>
+                        </>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -1,9 +1,16 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { ThemeContextProvider } from './context/ThemeContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/common';
 import { MainLayout } from './components/layout';
+import { getDefaultRoute } from './utils/permissions';
+
+// Redirect to the user's role-appropriate default page
+const DefaultRedirect = () => {
+  const { user } = useAuth();
+  return <Navigate to={getDefaultRoute(user)} replace />;
+};
 
 // Public Pages
 import {
@@ -72,21 +79,21 @@ function App() {
                     </ProtectedRoute>
                   }
                 >
-                  {/* Dashboard - Admin & Engineer */}
+                  {/* Dashboard - All roles (Technician sees basic overview) */}
                   <Route
                     path="/dashboard"
                     element={
-                      <ProtectedRoute roles={['admin', 'engineer']}>
+                      <ProtectedRoute roles={['admin', 'engineer', 'technician']}>
                         <Dashboard />
                       </ProtectedRoute>
                     }
                   />
 
-                  {/* Machines/Assets */}
+                  {/* Machines/Assets - All roles (Technician is read-only) */}
                   <Route
                     path="/machines"
                     element={
-                      <ProtectedRoute roles={['admin', 'engineer']}>
+                      <ProtectedRoute roles={['admin', 'engineer', 'technician']}>
                         <MachinesList />
                       </ProtectedRoute>
                     }
@@ -94,13 +101,13 @@ function App() {
                   <Route
                     path="/machines/:id"
                     element={
-                      <ProtectedRoute roles={['admin', 'engineer']}>
+                      <ProtectedRoute roles={['admin', 'engineer', 'technician']}>
                         <MachineDetails />
                       </ProtectedRoute>
                     }
                   />
 
-                  {/* Work Orders - Admin & Engineer */}
+                  {/* Work Orders - Admin & Engineer (full access) */}
                   <Route
                     path="/work-orders"
                     element={
@@ -136,7 +143,7 @@ function App() {
                     }
                   />
 
-                  {/* My Work Orders - Technician */}
+                  {/* My Work Orders - Technician only */}
                   <Route
                     path="/my-work-orders"
                     element={
@@ -146,8 +153,15 @@ function App() {
                     }
                   />
 
-                  {/* Alerts - All authenticated users */}
-                  <Route path="/alerts" element={<Alerts />} />
+                  {/* Alerts - Admin & Engineer only */}
+                  <Route
+                    path="/alerts"
+                    element={
+                      <ProtectedRoute roles={['admin', 'engineer']}>
+                        <Alerts />
+                      </ProtectedRoute>
+                    }
+                  />
 
                   {/* Reports - Admin & Engineer */}
                   <Route
@@ -182,8 +196,8 @@ function App() {
                   {/* Profile - All authenticated users */}
                   <Route path="/profile" element={<Profile />} />
 
-                  {/* Default redirect */}
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  {/* Default redirect based on user role */}
+                  <Route path="*" element={<DefaultRedirect />} />
                 </Route>
               </Routes>
             </AuthProvider>

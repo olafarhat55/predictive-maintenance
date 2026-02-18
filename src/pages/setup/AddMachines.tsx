@@ -14,12 +14,6 @@ import {
   Paper,
   IconButton,
   Grid,
-  FormControl,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  Chip,
   TablePagination,
   Card,
   CardContent,
@@ -43,7 +37,6 @@ const initialMachineState = {
   type: '',
   location: '',
   serial_number: '',
-  criticality: 'medium',
 };
 
 interface AddMachinesProps {
@@ -153,7 +146,6 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
 
       const errors: string[] = [];
       const validMachines: typeof machineList = [];
-      const validCriticalities = ['high', 'medium', 'low'];
 
       dataLines.forEach((line, i) => {
         const rowNum = i + startIndex + 1;
@@ -180,19 +172,12 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
           return;
         }
 
-        const criticality = cols[5]?.toLowerCase() || 'medium';
-        if (!validCriticalities.includes(criticality)) {
-          errors.push(`Row ${rowNum}: invalid criticality "${cols[5]}". Use high, medium, or low.`);
-          return;
-        }
-
         validMachines.push({
           name,
           type,
           location: cols[2] || '',
           model: cols[3] || '',
           serial_number: cols[4] || '',
-          criticality,
         });
       });
 
@@ -223,19 +208,6 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
   const handleNext = () => {
     onUpdate(machineList);
     onNext();
-  };
-
-  const getCriticalityColor = (criticality: string) => {
-    switch (criticality) {
-      case 'high':
-        return { bgcolor: '#ffebee', color: '#f44336' };
-      case 'medium':
-        return { bgcolor: '#fff3e0', color: '#ff9800' };
-      case 'low':
-        return { bgcolor: '#e8f5e9', color: '#4caf50' };
-      default:
-        return { bgcolor: '#f5f5f5', color: '#757575' };
-    }
   };
 
   // Hidden file input for CSV import
@@ -348,7 +320,7 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
         <Typography variant="h5" fontWeight={600} gutterBottom>
           Machines Information
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
           {editIndex !== null ? 'Edit machine details' : 'Enter machine details'}
         </Typography>
 
@@ -401,62 +373,10 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
             />
           </Grid>
 
-          {/* Row 3 - Criticality */}
+          {/* Row 3 - Action Buttons في المنتصف */}
           {/* @ts-expect-error MUI v7 Grid item prop */}
           <Grid item xs={12}>
-            <FormControl>
-              <FormLabel sx={{ mb: 1 }}>Criticality</FormLabel>
-              <RadioGroup
-                row
-                name="criticality"
-                value={formData.criticality}
-                onChange={handleChange}
-                sx={{ gap: 2 }}
-              >
-                <FormControlLabel
-                  value="high"
-                  control={
-                    <Radio
-                      sx={{
-                        color: '#f44336',
-                        '&.Mui-checked': { color: '#f44336' },
-                      }}
-                    />
-                  }
-                  label="High"
-                />
-                <FormControlLabel
-                  value="medium"
-                  control={
-                    <Radio
-                      sx={{
-                        color: '#ff9800',
-                        '&.Mui-checked': { color: '#ff9800' },
-                      }}
-                    />
-                  }
-                  label="Medium"
-                />
-                <FormControlLabel
-                  value="low"
-                  control={
-                    <Radio
-                      sx={{
-                        color: '#4caf50',
-                        '&.Mui-checked': { color: '#4caf50' },
-                      }}
-                    />
-                  }
-                  label="Low"
-                />
-              </RadioGroup>
-            </FormControl>
-          </Grid>
-
-          {/* Row 4 - Action Buttons */}
-          {/* @ts-expect-error MUI v7 Grid item prop */}
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
               <Button
                 variant="outlined"
                 onClick={handleCancel}
@@ -482,7 +402,7 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
         </Grid>
 
         {/* Navigation Buttons */}
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+        <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', pt: 3, borderTop: '1px solid #e0e0e0' }}>
           <Button variant="outlined" onClick={onBack}>
             Back
           </Button>
@@ -543,7 +463,6 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
               <TableCell>Location</TableCell>
               <TableCell>Type</TableCell>
               <TableCell>Serial No.</TableCell>
-              <TableCell>Criticality</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -558,13 +477,6 @@ const AddMachines = ({ machines, onUpdate, onNext, onBack }: AddMachinesProps) =
                     <TableCell>{machine.location || '-'}</TableCell>
                     <TableCell>{machine.type}</TableCell>
                     <TableCell>{machine.serial_number || '-'}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={machine.criticality.charAt(0).toUpperCase() + machine.criticality.slice(1)}
-                        size="small"
-                        sx={getCriticalityColor(machine.criticality)}
-                      />
-                    </TableCell>
                     <TableCell align="right">
                       <IconButton size="small" onClick={() => handleShowForm(actualIndex)}>
                         <EditIcon fontSize="small" />

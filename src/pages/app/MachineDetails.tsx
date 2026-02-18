@@ -39,12 +39,15 @@ import {
 import { api } from '../../services/api';
 import { connectSocket, disconnectSocket } from '../../services/socket';
 import { StatusBadge } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
 import { useThemeMode } from '../../context/ThemeContext';
+import { isTechnician } from '../../utils/permissions';
 import type { Machine } from '../../types';
 
 const MachineDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { isDark } = useThemeMode();
   const [loading, setLoading] = useState(true);
   const [machine, setMachine] = useState<Machine | null>(null);
@@ -281,24 +284,26 @@ const MachineDetails = () => {
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={<PdfIcon />}
-              fullWidth
-            >
-              Export PDF
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<WorkOrderIcon />}
-              fullWidth
-              onClick={() => navigate('/work-orders/new', { state: { machine } })}
-            >
-              Create Work Order
-            </Button>
-          </Box>
+          {/* Action Buttons - Hidden for Technicians (read-only access) */}
+          {!isTechnician(user) && (
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="outlined"
+                startIcon={<PdfIcon />}
+                fullWidth
+              >
+                Export PDF
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<WorkOrderIcon />}
+                fullWidth
+                onClick={() => navigate('/work-orders/new', { state: { machine } })}
+              >
+                Create Work Order
+              </Button>
+            </Box>
+          )}
         </Grid>
 
         {/* Right Column - Live Data & History */}

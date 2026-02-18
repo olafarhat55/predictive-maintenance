@@ -14,7 +14,7 @@ import {
   TableRow,
   Paper,
   IconButton,
-  Checkbox,
+
   Pagination,
   Skeleton,
   Card,
@@ -55,7 +55,7 @@ const WorkOrders = () => {
   const { isDark } = useThemeMode();
   const [loading, setLoading] = useState(true);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
-  const [selected, setSelected] = useState<number[]>([]);
+
   const [page, setPage] = useState(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workOrderToDelete, setWorkOrderToDelete] = useState<number | null>(null);
@@ -90,21 +90,6 @@ const WorkOrders = () => {
     setPage(1);
   };
 
-  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      setSelected(workOrders.map((wo) => wo.id));
-    } else {
-      setSelected([]);
-    }
-  };
-
-  const handleSelectOne = (id: number) => {
-    if (selected.includes(id)) {
-      setSelected(selected.filter((s) => s !== id));
-    } else {
-      setSelected([...selected, id]);
-    }
-  };
 
   const handleDelete = async () => {
     try {
@@ -273,13 +258,6 @@ const WorkOrders = () => {
                     },
                   }}
                 >
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      indeterminate={selected.length > 0 && selected.length < workOrders.length}
-                      checked={selected.length === workOrders.length}
-                      onChange={handleSelectAll}
-                    />
-                  </TableCell>
                   <TableCell>WO Number</TableCell>
                   <TableCell>Asset</TableCell>
                   <TableCell>Title</TableCell>
@@ -293,12 +271,6 @@ const WorkOrders = () => {
               <TableBody>
                 {paginatedWorkOrders.map((wo) => (
                   <TableRow key={wo.id} hover>
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selected.includes(wo.id)}
-                        onChange={() => handleSelectOne(wo.id)}
-                      />
-                    </TableCell>
                     <TableCell>
                       <Typography variant="body2" fontWeight={500}>
                         {wo.wo_number}

@@ -12,18 +12,25 @@ const PERMISSIONS: Record<Role, string[]> = {
     'view_dashboard',
     'view_machines',
     'view_machine_details',
+    'edit_machines',
     'create_work_order',
     'view_work_orders',
-    'view_alerts',
-    'view_analytics',
+    'edit_work_orders',
+    'delete_work_orders',
+    'view_maintenance',
+    'edit_maintenance',
     'view_reports',
     'export_reports',
+    'view_alerts',
+    'view_analytics',
   ],
   [ROLES.TECHNICIAN]: [
+    'view_dashboard',
+    'view_machines',
+    'view_machine_details',
     'view_my_work_orders',
     'update_work_order',
     'complete_work_order',
-    'view_alerts',
     'add_work_order_notes',
   ],
 };
@@ -72,6 +79,22 @@ export const isTechnician = (user: PermissionUser | null | undefined): boolean =
 };
 
 /**
+ * Get the default route for a user based on their role
+ */
+export const getDefaultRoute = (user: PermissionUser | null | undefined): string => {
+  if (!user || !user.role) return '/login';
+
+  switch (user.role) {
+    case ROLES.TECHNICIAN:
+      return '/my-work-orders';
+    case ROLES.ENGINEER:
+    case ROLES.ADMIN:
+    default:
+      return '/dashboard';
+  }
+};
+
+/**
  * Get navigation items for a user based on their role
  */
 export const getNavItems = (user: PermissionUser | null | undefined): NavItem[] => {
@@ -92,9 +115,13 @@ export const getNavItems = (user: PermissionUser | null | undefined): NavItem[] 
       { label: 'Dashboard', path: '/dashboard', icon: 'Dashboard' },
       { label: 'Assets', path: '/machines', icon: 'PrecisionManufacturing' },
       { label: 'Work Orders', path: '/work-orders', icon: 'Assignment' },
+      { label: 'Maintenance', path: '/maintenance', icon: 'Build' },
+      { label: 'Reports', path: '/reports', icon: 'Assessment' },
       { label: 'Alerts', path: '/alerts', icon: 'NotificationsActive' },
     ],
     [ROLES.TECHNICIAN]: [
+      { label: 'Dashboard', path: '/dashboard', icon: 'Dashboard' },
+      { label: 'Assets', path: '/machines', icon: 'PrecisionManufacturing' },
       { label: 'My Work Orders', path: '/my-work-orders', icon: 'Assignment' },
     ],
   };

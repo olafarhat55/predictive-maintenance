@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { api } from '../services/api';
 import type { User } from '../types';
 
+const VALID_ROLES = ['admin', 'engineer', 'technician'] as const;
+
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
@@ -28,25 +30,32 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Check for existing session on mount
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-
-    if (storedUser && storedToken) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+  const [user, setUser] = useState<User | null>(() => {
+    // Initialise user synchronously from sessionStorage so the very first
+    // render already has the correct auth state — this eliminates the
+    // flash where user is null and ProtectedRoute might redirect.
+    try {
+      const storedUser = sessionStorage.getItem('user');
+      const storedToken = sessionStorage.getItem('token');
+      if (storedUser && storedToken) {
+        const parsed: User = JSON.parse(storedUser);
+        if (parsed && parsed.role && VALID_ROLES.includes(parsed.role as typeof VALID_ROLES[number])) {
+          console.log('[Auth] Restored user from sessionStorage:', parsed.email, 'role:', parsed.role);
+          return parsed;
+        }
+        // Invalid / corrupt stored user — clear it
+        console.warn('[Auth] Stored user has invalid role:', parsed?.role, '— clearing session');
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('token');
       }
+    } catch {
+      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('token');
     }
-    setLoading(false);
-  }, []);
+    return null;
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const login = useCallback(async (email: string, password: string) => {
     setError(null);
@@ -56,8 +65,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const response = await api.login(email, password) as any;
       const { user: userData, token } = response;
 
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('token', token);
+      if (!userData?.role || !VALID_ROLES.includes(userData.role)) {
+        throw new Error('Server returned invalid user role');
+      }
+
+      console.log('[Auth] Login success:', userData.email, 'role:', userData.role);
+      sessionStorage.setItem('user', JSON.stringify(userData));
+      sessionStorage.setItem('token', token);
       setUser(userData);
 
       return userData;
@@ -76,8 +90,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('token');
       setUser(null);
     }
   }, []);
@@ -85,7 +99,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const updateUser = useCallback((updates: Partial<User>) => {
     setUser((prevUser) => {
       const updatedUser = { ...prevUser, ...updates } as User;
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('user', JSON.stringify(updatedUser));
       return updatedUser;
     });
   }, []);
