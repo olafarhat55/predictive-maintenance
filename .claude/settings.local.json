@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx vite build:*)",
+      "Bash(cd \"C:\\\\Users\\\\Sara\\\\Desktop\\\\minimaxi\\\\predictive-maintenance\" && npm install msw --save-dev 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Sara\\\\Desktop\\\\minimaxi\\\\predictive-maintenance\" && npx msw init public/ --save 2>&1)",
+      "Bash(head:*)",
+      "Bash(grep:*)",
+      "Bash(grep error TS:*)",
+      "Bash(cd \"C:\\\\Users\\\\Sara\\\\Desktop\\\\minimaxi\\\\predictive-maintenance\" && npm install -D vitest @testing-library/react @testing-library/user-event @testing-library/jest-dom jsdom @vitest/ui 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Sara\\\\Desktop\\\\minimaxi\\\\predictive-maintenance\" && npx vitest run 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Sara\\\\Desktop\\\\minimaxi\\\\predictive-maintenance\" && npx tsc --noEmit 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Sara\\\\Desktop\\\\minimaxi\\\\predictive-maintenance\" && npm install react-to-print 2>&1)",
+      "Bash(cd /c/Users/Sara/Desktop/minimaxi/predictive-maintenance && npx tsc --noEmit 2>&1)",
+      "Bash(echo EXIT:$?:*)"
+    ]
+  }
+}

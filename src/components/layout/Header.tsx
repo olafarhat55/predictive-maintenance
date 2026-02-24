@@ -287,6 +287,7 @@ const Header = ({ onMenuClick, notifications = [], sidebarOpen = false }: Header
           onClick={handleProfileMenuOpen}
         >
           <Avatar
+            src={user?.avatar || undefined}
             sx={{
               width: 36,
               height: 36,

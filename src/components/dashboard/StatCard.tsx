@@ -30,67 +30,69 @@ const StatCard = ({
     <Card
       sx={{
         height: '100%',
+        minHeight: 160,
+        display: 'flex',
+        flexDirection: 'column',
         borderRadius: 2,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        transition: 'transform 0.2s, box-shadow 0.2s',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        transition: 'box-shadow 0.2s',
         '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
         },
       }}
     >
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              {title}
-            </Typography>
-            <Typography variant="h4" fontWeight={600} sx={{ color }}>
-              {value}
-            </Typography>
-            {subtitle && (
-              <Typography variant="caption" color="text.secondary">
-                {subtitle}
-              </Typography>
-            )}
-          </Box>
+      <CardContent sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        {/* Top row: label + icon */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+          <Typography variant="body2" color="text.secondary" fontWeight={500}>
+            {title}
+          </Typography>
           {Icon && (
             <Box
               sx={{
-                p: 1,
+                width: 44,
+                height: 44,
                 borderRadius: 2,
                 bgcolor: `${color}15`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
               }}
             >
-              <Icon sx={{ fontSize: 28, color }} />
+              <Icon sx={{ fontSize: 24, color }} />
             </Box>
           )}
         </Box>
 
-        {trend && trendValue && (
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1.5 }}>
+        {/* Value */}
+        <Typography variant="h4" fontWeight={700} sx={{ color, lineHeight: 1.1, mb: 0.5 }}>
+          {value}
+        </Typography>
+
+        {/* Trend or subtitle */}
+        {trend && trendValue ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
             {isPositiveTrend ? (
-              <TrendingUpIcon sx={{ fontSize: 18, color: '#4caf50', mr: 0.5 }} />
+              <TrendingUpIcon sx={{ fontSize: 16, color: '#10B981' }} />
             ) : (
-              <TrendingDownIcon sx={{ fontSize: 18, color: '#f44336', mr: 0.5 }} />
+              <TrendingDownIcon sx={{ fontSize: 16, color: '#EF4444' }} />
             )}
             <Typography
               variant="caption"
-              sx={{
-                color: isPositiveTrend ? '#4caf50' : '#f44336',
-                fontWeight: 500,
-              }}
+              sx={{ color: isPositiveTrend ? '#10B981' : '#EF4444', fontWeight: 600 }}
             >
               {trendValue}
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+            <Typography variant="caption" color="text.secondary">
               vs last month
             </Typography>
           </Box>
-        )}
+        ) : subtitle ? (
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            {subtitle}
+          </Typography>
+        ) : null}
       </CardContent>
     </Card>
   );

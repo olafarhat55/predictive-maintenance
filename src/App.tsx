@@ -41,6 +41,7 @@ import {
   UserManagement,
   Settings,
   Profile,
+  AddAsset,
 } from './pages/app';
 
 function App() {
@@ -95,6 +96,14 @@ function App() {
                     element={
                       <ProtectedRoute roles={['admin', 'engineer', 'technician']}>
                         <MachinesList />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/machines/add"
+                    element={
+                      <ProtectedRoute roles={['admin', 'engineer']}>
+                        <AddAsset />
                       </ProtectedRoute>
                     }
                   />

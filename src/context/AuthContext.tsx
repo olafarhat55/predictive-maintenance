@@ -98,6 +98,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const updateUser = useCallback((updates: Partial<User>) => {
     setUser((prevUser) => {
+      if (!prevUser) return prevUser;
       const updatedUser = { ...prevUser, ...updates } as User;
       sessionStorage.setItem('user', JSON.stringify(updatedUser));
       return updatedUser;

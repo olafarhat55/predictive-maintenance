@@ -14,15 +14,15 @@ import {
   TableRow,
   Skeleton,
   Button,
-  CircularProgress,
-  Backdrop,
   useTheme,
+  Alert,
 } from '@mui/material';
 import {
   Warning as WarningIcon,
   Error as CriticalIcon,
   Build as ScheduledIcon,
   PictureAsPdf as PdfIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import {
   BarChart,
@@ -38,7 +38,7 @@ import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import html2pdf from 'html2pdf.js';
+import { useReactToPrint } from 'react-to-print';
 import { api } from '../../services/api';
 import { useThemeMode } from '../../context/ThemeContext';
 import type { Machine, MaintenanceEvent } from '../../types';
@@ -145,11 +145,12 @@ const getCalendarStyles = (isDark: boolean) => ({
 
 const MaintenancePlanning = () => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<MaintenanceEvent[]>([]);
   const [predictedFailures, setPredictedFailures] = useState<Machine[]>([]);
-  const [exporting, setExporting] = useState(false);
-  const contentRef = useRef(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const theme = useTheme();
   const { isDark } = useThemeMode();
 
@@ -159,6 +160,7 @@ const MaintenancePlanning = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
         const [eventsData, machinesData] = await Promise.all([
           api.getMaintenanceEvents(currentDate.getMonth() + 1, currentDate.getFullYear()),
@@ -168,15 +170,15 @@ const MaintenancePlanning = () => {
         setPredictedFailures(
           machinesData.filter((m) => m.prediction.failure_probability >= 50)
         );
-      } catch (error) {
-        console.error('Failed to fetch maintenance data:', error);
+      } catch {
+        setError('Failed to load maintenance data. Please check your connection and try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [currentDate]);
+  }, [currentDate, retryCount]);
 
   // Transform events for react-big-calendar
   const calendarEvents = useMemo(() => {
@@ -245,181 +247,42 @@ const MaintenancePlanning = () => {
     { week: 'Week 4', scheduled: 4, predicted: 3 },
   ];
 
-  // Handle PDF Export
-  const handleExportPDF = useCallback(async () => {
-    if (!contentRef.current || exporting) return;
-
-    setExporting(true);
-
-    try {
-      // Create a clone of the content for PDF generation
-      const element = contentRef.current;
-      const currentDateStr = format(new Date(), 'yyyy-MM-dd');
-      const reportMonth = format(currentDate, 'MMMM yyyy');
-
-      // Create PDF header content with logo
-      const logoUrl = window.location.origin + '/images/logo.png';
-      const headerHTML = `
-        <div style="font-family: 'Inter', 'Roboto', 'Helvetica', sans-serif; padding: 0 0 20px 0; border-bottom: 2px solid #2E75B6; margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <img src="${logoUrl}" alt="Logo" style="height: 40px; width: auto; object-fit: contain;" crossorigin="anonymous" />
-              <span style="color: #2E75B6; font-weight: 600; font-size: 20px;">minimaxi</span>
-            </div>
-            <div style="text-align: right; color: #666; font-size: 12px;">
-              <div>Generated: ${format(new Date(), 'MMMM d, yyyy')}</div>
-              <div>Report Period: ${reportMonth}</div>
-            </div>
-          </div>
-          <h1 style="margin: 15px 0 5px 0; color: #333; font-size: 22px; font-weight: 600;">
-            Maintenance Planning Report
-          </h1>
-          <p style="margin: 0; color: #666; font-size: 13px;">
-            Predictive Maintenance Analysis & Planning Overview
-          </p>
-        </div>
-      `;
-
-      // Create a temporary container for PDF content
-      // Position it on-screen but with fixed positioning to ensure proper rendering
-      const pdfContainer = document.createElement('div');
-      pdfContainer.style.position = 'fixed';
-      pdfContainer.style.left = '0';
-      pdfContainer.style.top = '0';
-      pdfContainer.style.width = '210mm';
-      pdfContainer.style.minHeight = '297mm';
-      pdfContainer.style.backgroundColor = 'white';
-      pdfContainer.style.fontFamily = "'Inter', 'Roboto', 'Helvetica', sans-serif";
-      pdfContainer.style.padding = '20px';
-      pdfContainer.style.zIndex = '-9999';
-      pdfContainer.style.opacity = '0';
-      pdfContainer.style.pointerEvents = 'none';
-      pdfContainer.style.overflow = 'visible';
-
-      // Clone the content
-      const contentClone = element.cloneNode(true);
-
-      // Remove the title from clone (we'll use our header)
-      const titleElement = contentClone.querySelector('h5');
-      if (titleElement) {
-        titleElement.remove();
+  // react-to-print prints the live DOM through the browser's native print engine,
+  // which correctly renders the calendar, Recharts charts and MUI components
+  // without cloning or off-screen rendering tricks.
+  const handleExportPDF = useReactToPrint({
+    contentRef,
+    documentTitle: `Maintenance_Planning_Report_${format(new Date(), 'yyyy-MM-dd')}`,
+    pageStyle: `
+      @page { size: A4; margin: 15mm; }
+      @media print {
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .rbc-toolbar button { display: none; }
       }
+    `,
+  });
 
-      // Hide calendar toolbar buttons for cleaner export
-      const toolbarButtons = contentClone.querySelectorAll('.rbc-toolbar button');
-      toolbarButtons.forEach(btn => {
-        btn.style.display = 'none';
-      });
-
-      // Style the calendar toolbar label
-      const toolbarLabel = contentClone.querySelector('.rbc-toolbar-label');
-      if (toolbarLabel) {
-        toolbarLabel.style.fontSize = '16px';
-        toolbarLabel.style.fontWeight = '600';
-        toolbarLabel.style.textAlign = 'left';
-        toolbarLabel.style.padding = '10px 0';
-      }
-
-      // Fix chart containers - set explicit dimensions
-      const chartContainers = contentClone.querySelectorAll('.recharts-responsive-container');
-      chartContainers.forEach(container => {
-        container.style.width = '100%';
-        container.style.minWidth = '400px';
-        container.style.height = '250px';
-        container.style.minHeight = '250px';
-      });
-
-      // Ensure SVG charts have proper dimensions
-      const svgCharts = contentClone.querySelectorAll('.recharts-wrapper');
-      svgCharts.forEach(wrapper => {
-        wrapper.style.width = '100%';
-        wrapper.style.height = '250px';
-        const svg = wrapper.querySelector('svg');
-        if (svg) {
-          svg.setAttribute('width', '100%');
-          svg.setAttribute('height', '250');
-          svg.style.width = '100%';
-          svg.style.height = '250px';
-        }
-      });
-
-      // Add page break hints
-      const cards = contentClone.querySelectorAll('.MuiCard-root');
-      cards.forEach((card, index) => {
-        if (index > 0) {
-          card.style.pageBreakInside = 'avoid';
-          card.style.marginTop = '15px';
-        }
-      });
-
-      // Assemble PDF content
-      pdfContainer.innerHTML = headerHTML;
-      pdfContainer.appendChild(contentClone);
-
-      // Add footer
-      const footerHTML = `
-        <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e0e0e0; text-align: center; color: #999; font-size: 11px;">
-          <p style="margin: 0;">This report was automatically generated by minimaxi Predictive Maintenance System</p>
-          <p style="margin: 5px 0 0 0;">© ${new Date().getFullYear()} ABC Manufacturing - Confidential</p>
-        </div>
-      `;
-      pdfContainer.insertAdjacentHTML('beforeend', footerHTML);
-
-      document.body.appendChild(pdfContainer);
-
-      // Wait for charts and content to render properly
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // PDF configuration options
-      const opt = {
-        margin: [15, 15, 15, 15],
-        filename: `Maintenance_Planning_Report_${currentDateStr}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          logging: false,
-          letterRendering: true,
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: 794, // A4 width in pixels at 96 DPI
-          windowHeight: 1123, // A4 height in pixels at 96 DPI
-          onclone: (clonedDoc) => {
-            // Ensure cloned charts have proper dimensions
-            const clonedCharts = clonedDoc.querySelectorAll('.recharts-responsive-container');
-            clonedCharts.forEach(container => {
-              container.style.width = '400px';
-              container.style.height = '250px';
-            });
-            const clonedWrappers = clonedDoc.querySelectorAll('.recharts-wrapper');
-            clonedWrappers.forEach(wrapper => {
-              wrapper.style.width = '400px';
-              wrapper.style.height = '250px';
-            });
+  if (error && !loading) {
+    return (
+      <Box sx={{ mt: 4 }}>
+        <Alert
+          severity="error"
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              startIcon={<RefreshIcon />}
+              onClick={() => setRetryCount((c) => c + 1)}
+            >
+              Retry
+            </Button>
           }
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait'
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
-      // Generate PDF
-      await (html2pdf() as any).set(opt).from(pdfContainer).save();
-
-      // Cleanup
-      document.body.removeChild(pdfContainer);
-
-    } catch (error) {
-      console.error('Failed to export PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
-    } finally {
-      setExporting(false);
-    }
-  }, [currentDate, exporting]);
+        >
+          {error}
+        </Alert>
+      </Box>
+    );
+  }
 
   if (loading) {
     return (
@@ -446,22 +309,6 @@ const MaintenancePlanning = () => {
 
   return (
     <Box>
-      {/* Loading Backdrop for PDF Export */}
-      <Backdrop
-        sx={{
-          color: '#fff',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          flexDirection: 'column',
-          gap: 2
-        }}
-        open={exporting}
-      >
-        <CircularProgress color="inherit" size={48} />
-        <Typography variant="body1" sx={{ mt: 1 }}>
-          Generating PDF Report...
-        </Typography>
-      </Backdrop>
-
       {/* Header with Title and Export Button */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h5" fontWeight={600}>
@@ -469,9 +316,9 @@ const MaintenancePlanning = () => {
         </Typography>
         <Button
           variant="contained"
-          startIcon={exporting ? <CircularProgress size={18} color="inherit" /> : <PdfIcon />}
-          onClick={handleExportPDF}
-          disabled={exporting || loading}
+          startIcon={<PdfIcon />}
+          onClick={() => handleExportPDF()}
+          disabled={loading}
           sx={{
             bgcolor: '#2E75B6',
             '&:hover': { bgcolor: '#1a4971' },
@@ -479,7 +326,7 @@ const MaintenancePlanning = () => {
             fontWeight: 500,
           }}
         >
-          {exporting ? 'Exporting...' : 'Export PDF'}
+          Export PDF
         </Button>
       </Box>
 
@@ -526,8 +373,7 @@ const MaintenancePlanning = () => {
         {/* Middle Row - Side by Side Cards */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
           {/* Predicted Failures */}
-          {/* @ts-expect-error MUI v7 Grid item prop */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card sx={{ borderRadius: 2, height: '100%' }}>
               <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ mb: 1.5 }}>
@@ -593,8 +439,7 @@ const MaintenancePlanning = () => {
           </Grid>
 
           {/* Maintenance Load Forecast */}
-          {/* @ts-expect-error MUI v7 Grid item prop */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card sx={{ borderRadius: 2, height: '100%' }}>
               <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>

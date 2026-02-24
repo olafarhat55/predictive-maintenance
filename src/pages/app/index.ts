@@ -11,3 +11,4 @@ export { default as Reports } from './Reports';
 export { default as UserManagement } from './UserManagement';
 export { default as Settings } from './Settings';
 export { default as Profile } from './Profile';
+export { default as AddAsset } from './AddAsset';

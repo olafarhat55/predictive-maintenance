@@ -25,14 +25,12 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
 import { validatePassword, validateConfirmPassword } from '../../utils/validation';
 
 const ActivatePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-  const { updateUser } = useAuth();
 
   const [formData, setFormData] = useState({
     password: '',
@@ -99,19 +97,10 @@ const ActivatePage = () => {
 
     setLoading(true);
     try {
-      const response = await api.activateAccount(token, formData.password) as any;
+      await api.activateAccount(token, formData.password);
 
-      // Check if admin (first_login true) or regular user
-      if (response.user && response.user.first_login) {
-        // Admin - store user data and redirect to setup wizard
-        sessionStorage.setItem('user', JSON.stringify(response.user));
-        sessionStorage.setItem('token', response.token);
-        updateUser(response.user);
-        navigate('/setup');
-      } else {
-        // Engineer/Technician - redirect to login
-        navigate('/login');
-      }
+      // Always redirect to Login — the login page handles first_login → /setup
+      navigate('/login');
     } catch (err: any) {
       setError(err.message || 'Failed to activate account. Please try again.');
     } finally {

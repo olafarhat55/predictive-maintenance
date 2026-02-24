@@ -2,7 +2,7 @@ import axios from 'axios';
 import { mockApi } from './mockApi';
 
 // Toggle between mock and real API
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 // Axios instance for real API calls
 const axiosInstance = axios.create({
@@ -82,6 +82,12 @@ const realApi = {
   updateUser: (id: string | number, data: any) => axiosInstance.put(`/users/${id}`, data),
   deleteUser: (id: string | number) => axiosInstance.delete(`/users/${id}`),
   inviteUser: (data: any) => axiosInstance.post('/users/invite', data),
+  updateAvatar: (id: string | number, base64Image: string, sessionUser?: any) =>
+    axiosInstance.patch(`/users/${id}/avatar`, {
+      avatar: base64Image,
+      // Forwarded for MSW/mock fallback — real backend uses auth token instead
+      ...(sessionUser && { _session: sessionUser }),
+    }),
 
   // Company/Settings
   getCompanySettings: () => axiosInstance.get('/company'),
@@ -96,11 +102,31 @@ const realApi = {
   // Reports
   getReportsData: () => axiosInstance.get('/reports'),
 
+  // Access Requests
+  getAccessRequests: () => axiosInstance.get('/access-requests'),
+
   // Maintenance
   getMaintenanceEvents: (month: number, year: number) => axiosInstance.get('/maintenance/events', { params: { month, year } }),
 
   // Export
   exportPDF: (type: string, id: string | number) => axiosInstance.post('/export/pdf', { type, id }),
+
+  // Settings — Asset Types
+  getAssetTypes: () => axiosInstance.get('/settings/asset-types'),
+  createAssetType: (data: any) => axiosInstance.post('/settings/asset-types', data),
+  updateAssetType: (id: number, data: any) => axiosInstance.put(`/settings/asset-types/${id}`, data),
+  deleteAssetType: (id: number) => axiosInstance.delete(`/settings/asset-types/${id}`),
+
+  // Settings — Sensor Thresholds
+  getSensorThresholds: () => axiosInstance.get('/settings/sensor-thresholds'),
+  createSensorThreshold: (data: any) => axiosInstance.post('/settings/sensor-thresholds', data),
+  updateSensorThreshold: (id: number, data: any) => axiosInstance.put(`/settings/sensor-thresholds/${id}`, data),
+  deleteSensorThreshold: (id: number) => axiosInstance.delete(`/settings/sensor-thresholds/${id}`),
+
+  // Settings — AI Model
+  getAIModelInfo: () => axiosInstance.get('/settings/ai-model'),
+  retrainAIModel: () => axiosInstance.post('/settings/ai-model/retrain'),
+  scheduleTraining: (data: any) => axiosInstance.post('/settings/ai-model/schedule', data),
 };
 
 // Export the appropriate API based on USE_MOCK flag

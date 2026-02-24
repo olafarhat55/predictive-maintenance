@@ -17,6 +17,7 @@ import {
   Pagination,
   Skeleton,
   InputAdornment,
+  Alert,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -24,6 +25,7 @@ import {
   Visibility as ViewIcon,
   Assignment as WorkOrderIcon,
   History as HistoryIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
@@ -39,6 +41,8 @@ const MachinesList = () => {
   const { user } = useAuth();
   const { isDark } = useThemeMode();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [machines, setMachines] = useState<Machine[]>([]);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({
@@ -47,24 +51,36 @@ const MachinesList = () => {
     location: '',
     status: '',
   });
+  // Debounced search — only sent to the API after the user stops typing for 500ms.
+  // Dropdown filters (type, location, status) are applied immediately.
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   const rowsPerPage = 10;
 
   useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(filters.search), 500);
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
+  useEffect(() => {
     const fetchMachines = async () => {
       setLoading(true);
+      setError(null);
       try {
-        const data = await api.getMachines(filters);
+        const data = await api.getMachines({
+          ...filters,
+          search: debouncedSearch,
+        });
         setMachines(data);
-      } catch (error) {
-        console.error('Failed to fetch machines:', error);
+      } catch {
+        setError('Failed to load assets. Please check your connection and try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchMachines();
-  }, [filters]);
+  }, [debouncedSearch, filters.type, filters.location, filters.status, retryCount]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -93,6 +109,28 @@ const MachinesList = () => {
 
   const totalPages = Math.ceil(machines.length / rowsPerPage);
 
+  if (error && !loading) {
+    return (
+      <Box sx={{ mt: 4 }}>
+        <Alert
+          severity="error"
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              startIcon={<RefreshIcon />}
+              onClick={() => setRetryCount((c) => c + 1)}
+            >
+              Retry
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      </Box>
+    );
+  }
+
   if (loading) {
     return (
       <Box>
@@ -113,7 +151,7 @@ const MachinesList = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => navigate('/machines/new')}
+            onClick={() => navigate('/machines/add')}
           >
             Add Asset
           </Button>
@@ -192,7 +230,7 @@ const MachinesList = () => {
           title="No assets found"
           description="Add your first asset to start monitoring."
           actionLabel={isAdmin(user) ? 'Add Asset' : undefined}
-          onAction={isAdmin(user) ? () => navigate('/machines/new') : undefined}
+          onAction={isAdmin(user) ? () => navigate('/machines/add') : undefined}
         />
       ) : (
         <>

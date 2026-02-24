@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -12,6 +12,7 @@ import {
   Alert,
   InputAdornment,
   IconButton,
+  CircularProgress,
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -22,9 +23,38 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 
+/** Resize an image file to at most 200×200 px, returns a JPEG base64 data-URL. */
+const resizeImage = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const MAX = 200;
+        let { width, height } = img;
+        if (width > height) {
+          if (width > MAX) { height = Math.round((height * MAX) / width); width = MAX; }
+        } else {
+          if (height > MAX) { width = Math.round((width * MAX) / height); height = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d')?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+
 const Profile = () => {
   const { user, updateUser } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -41,6 +71,35 @@ const Profile = () => {
     new_password: '',
     confirm_password: '',
   });
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const previousAvatar = user?.avatar ?? null;
+    setUploading(true);
+    setError('');
+    try {
+      const base64 = await resizeImage(file);
+      // Optimistic update — show the new avatar before the API call completes
+      updateUser({ avatar: base64 });
+      await api.updateAvatar(user.id, base64, user);
+      setSuccess('Profile picture updated');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      // Revert on failure
+      updateUser({ avatar: previousAvatar });
+      setError(err.message || 'Failed to upload photo');
+    } finally {
+      setUploading(false);
+      // Reset so the same file can be re-selected
+      e.target.value = '';
+    }
+  };
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -120,7 +179,16 @@ const Profile = () => {
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3 }}>
                 <Box sx={{ position: 'relative' }}>
+                  {/* Hidden file input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    style={{ display: 'none' }}
+                    onChange={handleAvatarChange}
+                  />
                   <Avatar
+                    src={user?.avatar || undefined}
                     sx={{
                       width: 100,
                       height: 100,
@@ -132,6 +200,8 @@ const Profile = () => {
                   </Avatar>
                   <IconButton
                     size="small"
+                    onClick={handleAvatarClick}
+                    disabled={uploading}
                     sx={{
                       position: 'absolute',
                       bottom: 0,
@@ -141,7 +211,9 @@ const Profile = () => {
                       '&:hover': { bgcolor: '#f5f5f5' },
                     }}
                   >
-                    <CameraIcon fontSize="small" />
+                    {uploading
+                      ? <CircularProgress size={14} />
+                      : <CameraIcon fontSize="small" />}
                   </IconButton>
                 </Box>
                 <Box>

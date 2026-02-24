@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Grid,
@@ -7,15 +7,17 @@ import {
   MenuItem,
   Button,
   Skeleton,
+  Alert,
 } from '@mui/material';
 import {
   PrecisionManufacturing as MachineIcon,
   Warning as WarningIcon,
   Assignment as WorkOrderIcon,
   TrendingDown as PredictionIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { api } from '../../services/api';
-import { connectSocket, disconnectSocket, getSocket } from '../../services/socket';
+import { connectSocket, disconnectSocket } from '../../services/socket';
 import {
   StatCard,
   HealthPieChart,
@@ -27,6 +29,7 @@ import type { DashboardStats, HealthDistributionItem, FailureTrendItem, SensorTr
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [healthData, setHealthData] = useState<HealthDistributionItem[]>([]);
   const [failureTrend, setFailureTrend] = useState<FailureTrendItem[]>([]);
@@ -34,42 +37,43 @@ const Dashboard = () => {
   const [sensorTrends, setSensorTrends] = useState<SensorTrendItem[]>([]);
   const [aiInsights, setAIInsights] = useState<AIInsight[]>([]);
   const [lastUpdated, setLastUpdated] = useState('0s ago');
-  const [filters, setFilters] = useState({
-    timeRange: '7d',
-    asset: 'all',
-  });
+  // filters = what the user is currently editing in the UI
+  const [filters, setFilters] = useState({ timeRange: '7d', asset: 'all' });
+  // appliedFilters = last values sent to the API (changed only when Apply is clicked)
+  const [appliedFilters, setAppliedFilters] = useState({ timeRange: '7d', asset: 'all' });
+  // retryCount increments to force a re-fetch on manual retry
+  const [retryCount, setRetryCount] = useState(0);
+
+  const fetchDashboardData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [statsData, health, trend, sensors, insights] = await Promise.all([
+        api.getDashboardStats(),
+        api.getHealthDistribution(),
+        api.getFailureTrend('monthly'),
+        api.getSensorTrends(),
+        api.getAIInsights(),
+      ]);
+      setStats(statsData);
+      setHealthData(health);
+      setFailureTrend(trend);
+      setSensorTrends(sensors);
+      setAIInsights(insights);
+    } catch {
+      setError('Failed to load dashboard data. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appliedFilters, retryCount]);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
-      try {
-        const [statsData, health, trend, sensors, insights] = await Promise.all([
-          api.getDashboardStats(),
-          api.getHealthDistribution(),
-          api.getFailureTrend('monthly'),
-          api.getSensorTrends(),
-          api.getAIInsights(),
-        ]);
-
-        setStats(statsData);
-        setHealthData(health);
-        setFailureTrend(trend);
-        setSensorTrends(sensors);
-        setAIInsights(insights);
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
 
-    // Connect to socket for real-time updates
     const socket = connectSocket();
 
     socket.on('machine_update', (data: any) => {
-      // Update sensor trends with new data
       setSensorTrends((prev) => {
         const newData = [...prev];
         if (newData.length > 10) newData.shift();
@@ -84,7 +88,6 @@ const Dashboard = () => {
       setLastUpdated('0s ago');
     });
 
-    // Update last updated time
     const interval = setInterval(() => {
       setLastUpdated((prev) => {
         const seconds = parseInt(prev) || 0;
@@ -96,7 +99,7 @@ const Dashboard = () => {
       disconnectSocket();
       clearInterval(interval);
     };
-  }, []);
+  }, [fetchDashboardData]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -113,23 +116,49 @@ const Dashboard = () => {
     }
   };
 
+  if (error && !loading) {
+    return (
+      <Box sx={{ mt: 4 }}>
+        <Alert
+          severity="error"
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              startIcon={<RefreshIcon />}
+              onClick={() => setRetryCount((c) => c + 1)}
+            >
+              Retry
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      </Box>
+    );
+  }
+
   if (loading) {
     return (
       <Box>
+        <Skeleton variant="rounded" height={40} sx={{ mb: 3, width: 200 }} />
         <Grid container spacing={3}>
           {[1, 2, 3, 4].map((i) => (
-            // @ts-expect-error MUI v7 Grid item prop
-            <Grid item xs={12} sm={6} md={3} key={i}>
-              <Skeleton variant="rounded" height={120} />
+            <Grid key={i} size={{ xs: 12, sm: 6, md: 3 }}>
+              <Skeleton variant="rounded" height={160} />
             </Grid>
           ))}
-          {/* @ts-expect-error MUI v7 Grid item prop */}
-          <Grid item xs={12} md={6}>
-            <Skeleton variant="rounded" height={350} />
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Skeleton variant="rounded" height={400} />
           </Grid>
-          {/* @ts-expect-error MUI v7 Grid item prop */}
-          <Grid item xs={12} md={6}>
-            <Skeleton variant="rounded" height={350} />
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Skeleton variant="rounded" height={400} />
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <Skeleton variant="rounded" height={260} />
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <Skeleton variant="rounded" height={400} />
           </Grid>
         </Grid>
       </Box>
@@ -140,10 +169,10 @@ const Dashboard = () => {
     <Box>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h5" fontWeight={600}>
+        <Typography variant="h5" fontWeight={700}>
           Dashboard
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
           <TextField
             select
             size="small"
@@ -170,16 +199,19 @@ const Dashboard = () => {
             <MenuItem value="pumps">Pumps</MenuItem>
             <MenuItem value="engines">Engines</MenuItem>
           </TextField>
-          <Button variant="outlined" size="small">
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setAppliedFilters(filters)}
+          >
             Apply
           </Button>
         </Box>
       </Box>
 
-      {/* KPI Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        {/* @ts-expect-error MUI v7 Grid item prop */}
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={3}>
+        {/* ── KPI Cards ── */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="Total Assets"
             value={stats?.total_assets || 0}
@@ -189,70 +221,58 @@ const Dashboard = () => {
             trendValue="+5%"
           />
         </Grid>
-        {/* @ts-expect-error MUI v7 Grid item prop */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="At Risk"
-            value={stats?.warning + stats?.critical || 0}
+            value={(stats?.warning ?? 0) + (stats?.critical ?? 0)}
             icon={WarningIcon}
-            color="#ff9800"
+            color="#F59E0B"
             subtitle={`${stats?.warning} warning, ${stats?.critical} critical`}
           />
         </Grid>
-        {/* @ts-expect-error MUI v7 Grid item prop */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="Active Work Orders"
             value={stats?.active_work_orders || 0}
             icon={WorkOrderIcon}
-            color="#4caf50"
+            color="#10B981"
             trend="down"
             trendValue="-12%"
           />
         </Grid>
-        {/* @ts-expect-error MUI v7 Grid item prop */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="Predicted Failures"
             value={stats?.predicted_failures || 0}
             icon={PredictionIcon}
-            color="#f44336"
+            color="#EF4444"
             subtitle="Next 7 days"
           />
         </Grid>
-      </Grid>
 
-      {/* Charts Row */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        {/* @ts-expect-error MUI v7 Grid item prop */}
-        <Grid item xs={12} md={6}>
-          <HealthPieChart
-            data={healthData}
-            title="Asset Health Distribution"
-          />
+        {/* ── Charts ── */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <HealthPieChart data={healthData} title="Asset Health Distribution" />
         </Grid>
-        {/* @ts-expect-error MUI v7 Grid item prop */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TrendLineChart
             data={failureTrend}
             title="Failure Probability Trend"
-            lines={[{ dataKey: 'probability', color: '#f44336', name: 'Failure %' }]}
+            lines={[{ dataKey: 'probability', color: '#EF4444', name: 'Failure %' }]}
             xAxisKey="label"
-            showPeriodFilter={true}
+            showPeriodFilter
             onPeriodChange={handleTrendPeriodChange}
-            defaultPeriod="monthly"
+            defaultPeriod={trendPeriod}
           />
         </Grid>
-      </Grid>
 
-      {/* AI Insights and Sensor Trends */}
-      <Grid container spacing={3}>
-        {/* @ts-expect-error MUI v7 Grid item prop */}
-        <Grid item xs={12} md={5}>
+        {/* ── AI Insights ── */}
+        <Grid size={{ xs: 12 }}>
           <AIInsightCard insights={aiInsights} />
         </Grid>
-        {/* @ts-expect-error MUI v7 Grid item prop */}
-        <Grid item xs={12} md={7}>
+
+        {/* ── Live Sensor Trends ── */}
+        <Grid size={{ xs: 12 }}>
           <SensorTrendsChart
             data={sensorTrends}
             title="Live Sensor Trends"
